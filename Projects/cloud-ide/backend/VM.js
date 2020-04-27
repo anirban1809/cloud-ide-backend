@@ -162,7 +162,7 @@ const deletedata = (query,collection,callback) => {
 
 const setprivateip = (id) =>{
     getdata('resources.instances',id,(data)=>{
-        let cmd = 'docker inspect --format \'{{.NetworkSettings.Networks.net1.IPAddress}}\' '+data.instancename.toLowerCase();
+        let cmd = 'docker inspect --format \'{{.NetworkSettings.IPAddress}}\' '+data.instancename.toLowerCase();
         exec(cmd, (error, stdout, stderr) => {
             if (error) {
                 console.log(error);
