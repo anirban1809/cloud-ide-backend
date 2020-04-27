@@ -67,7 +67,7 @@ const createvm = (name,base,callback) => {
 }
 
 const startvm = (name,port,callback) => {
-    cmd = 'docker run --rm -id --expose 80 --expose 443 --network=net1 --name '+name.toLowerCase()+' '+ name.toLowerCase()+':latest';
+    cmd = 'docker run --rm -idp '+port+':22 --name '+name.toLowerCase()+' '+ name.toLowerCase()+':latest';
     exec(cmd, (error, stdout, stderr) => {
         if (error) {
             console.log(error);
