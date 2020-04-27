@@ -1,0 +1,108 @@
+{
+  "commit": "fa557ec58dbd9778a29219d72bce014d9af9234b",
+  "abbreviated_commit": "fa557ec",
+  "tree": "80e85db9a1766609ae1631f478239370683e5e31",
+  "abbreviated_tree": "80e85db",
+  "parent": "b6722862f67ffd3c27d54767275ac5a32213d621",
+  "abbreviated_parent": "b672286",
+  "refs": "HEAD -> master",
+  "encoding": "",
+  "subject": "added change",
+  "sanitized_subject_line": "added-change",
+  "body": "",
+  "commit_notes": "",
+  "verification_flag": "N",
+  "signer": "",
+  "signer_key": "",
+  "author": {
+    "name": "anirban1809",
+    "email": "anirban12321@gmail.com",
+    "date": "Thu, 16 Apr 2020 17:47:43 +0530"
+  },
+  "commiter": {
+    "name": "anirban1809",
+    "email": "anirban12321@gmail.com",
+    "date": "Thu, 16 Apr 2020 17:47:43 +0530"
+  }
+},
+{
+  "commit": "b6722862f67ffd3c27d54767275ac5a32213d621",
+  "abbreviated_commit": "b672286",
+  "tree": "d891d7e91cec4fa7e96701805662a4ea26f3e7ab",
+  "abbreviated_tree": "d891d7e",
+  "parent": "81ec76094f53d96153daa86605d7a62c425e425e",
+  "abbreviated_parent": "81ec760",
+  "refs": "staging",
+  "encoding": "",
+  "subject": "mod1",
+  "sanitized_subject_line": "mod1",
+  "body": "",
+  "commit_notes": "",
+  "verification_flag": "N",
+  "signer": "",
+  "signer_key": "",
+  "author": {
+    "name": "anirban1809",
+    "email": "anirban12321@gmail.com",
+    "date": "Thu, 16 Apr 2020 17:26:20 +0530"
+  },
+  "commiter": {
+    "name": "anirban1809",
+    "email": "anirban12321@gmail.com",
+    "date": "Thu, 16 Apr 2020 17:26:20 +0530"
+  }
+},
+{
+  "commit": "81ec76094f53d96153daa86605d7a62c425e425e",
+  "abbreviated_commit": "81ec760",
+  "tree": "423cdd77fd091aff923902c8e76f9a2df7fe1572",
+  "abbreviated_tree": "423cdd7",
+  "parent": "e511a37e009324bbbe2314dd09a6fd59f6284c11",
+  "abbreviated_parent": "e511a37",
+  "refs": "",
+  "encoding": "",
+  "subject": "oo",
+  "sanitized_subject_line": "oo",
+  "body": "",
+  "commit_notes": "",
+  "verification_flag": "N",
+  "signer": "",
+  "signer_key": "",
+  "author": {
+    "name": "anirban1809",
+    "email": "anirban12321@gmail.com",
+    "date": "Wed, 15 Apr 2020 18:21:20 +0530"
+  },
+  "commiter": {
+    "name": "anirban1809",
+    "email": "anirban12321@gmail.com",
+    "date": "Wed, 15 Apr 2020 18:21:20 +0530"
+  }
+},
+{
+  "commit": "e511a37e009324bbbe2314dd09a6fd59f6284c11",
+  "abbreviated_commit": "e511a37",
+  "tree": "5efb9bc29c482e023e40e0a2b3b7e49cec842034",
+  "abbreviated_tree": "5efb9bc",
+  "parent": "",
+  "abbreviated_parent": "",
+  "refs": "",
+  "encoding": "",
+  "subject": "Initial Commit",
+  "sanitized_subject_line": "Initial-Commit",
+  "body": "",
+  "commit_notes": "",
+  "verification_flag": "N",
+  "signer": "",
+  "signer_key": "",
+  "author": {
+    "name": "anirban1809",
+    "email": "anirban12321@gmail.com",
+    "date": "Wed, 15 Apr 2020 18:08:53 +0530"
+  },
+  "commiter": {
+    "name": "anirban1809",
+    "email": "anirban12321@gmail.com",
+    "date": "Wed, 15 Apr 2020 18:08:53 +0530"
+  }
+},
