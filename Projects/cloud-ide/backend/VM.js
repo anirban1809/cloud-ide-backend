@@ -178,11 +178,43 @@ const setprivateip = (id) =>{
     });
 }
 
+const setpublicip = (id) => {
+    getdata('resources.instances', id, (data) => {
+        let cmd = 'dig +short myip.opendns.com @resolver1.opendns.com';
+        exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                console.log(error);
+            }
+            if (stderr) {
+                console.log(stderr);
+
+            }
+            console.log(stdout);
+            updatepublicip({ instanceid: id }, stdout);
+
+        });
+    });
+}
+
+
 const updateprivateip = (id, value) => {
     mongodb.connect('mongodb://127.0.0.1:27017', (err, client) => {
         if (!err) {
             const db = client.db('cloud');
             db.collection('resources.instances').updateOne(id, { $set: {'privateip':value} }, (err, doc) => {
+                if (err) {
+                    console.log('Failed to update!');
+                }
+            });
+        }
+    });
+}
+
+const updatepublicip = (id, value) => {
+    mongodb.connect('mongodb://127.0.0.1:27017', (err, client) => {
+        if (!err) {
+            const db = client.db('cloud');
+            db.collection('resources.instances').updateOne(id, { $set: { 'publicip': value } }, (err, doc) => {
                 if (err) {
                     console.log('Failed to update!');
                 }
@@ -233,6 +265,7 @@ app.post('/createvm',(req,res)=>{
                             console.log('VM RUNNING!')
                             updatevmstate({ instanceid : req.body.instanceid }, 2);
                             setprivateip(data.instanceid);
+                            setpublicip(data.instanceid);
 
                         }
                     })
@@ -421,6 +454,7 @@ app.post('/stopvmmultiple',(req,res)=>{
         stopvm(instance,(status)=>{
             if(status==1){
                 updateprivateip({ instanceid: instance }, '<inactive>');
+                updatepublicip({ instanceid: instance }, '<inactive>');
                 console.log('Stopped '+instance);
             }
         });
