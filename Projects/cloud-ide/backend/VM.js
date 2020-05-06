@@ -3,6 +3,8 @@ var bodyParser = require('body-parser')
 const cors = require('cors');
 const mongodb = require('mongodb').MongoClient;
 const { exec } = require("child_process");
+const Axios = require('axios');
+const _ = require('lodash');
 app.use(cors());
 app.use(bodyParser());
 
@@ -82,7 +84,25 @@ const startvm = (name,port,callback) => {
     });
 }
 
+app.post('/createcontainerimage',(req,res)=>{
+    req.body.contid = 'img-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    req.body.created = new Date().toUTCString();
+    insertdata(req.body,'resources.containers',(err,data)=>{
+        if(!err){
+            console.log(data);
+            res.send('Container Created!')
+        }
+    })
+});
 
+app.post('/insertData',(req,res)=>{
+    insertdata(req.body,req.query.collection.toString(),(err,data)=>{
+        if(!err){
+            console.log(data);
+            res.send('Data Inserted!');
+        }
+    });
+})
 
 const insertdata = (data,collection,callback) =>{
     mongodb.connect('mongodb://127.0.0.1:27017/', (err, client) => {
@@ -151,6 +171,27 @@ const deletebucket = (query,callback) =>{
     });
 }
 
+const deleteData = (query,collection, callback) => {
+    mongodb.connect('mongodb://127.0.0.1:27017/', (err, client) => {
+        if (!err) {
+            const db = client.db('cloud');
+            db.collection(collection).deleteOne(query).then((err) => callback(err,1));
+        }
+    });
+}
+
+app.post('/deleteData',(req,res)=>{
+    console.log(req.body);
+    deleteData(req.body,req.query.collection,(err,status)=>{
+        if(status==1){
+            console.log('Data Deleted');
+            res.send('Data Deleted');
+        }else{
+            console.log(err);
+        }
+    });
+});
+
 const deletedata = (query,collection,callback) => {
     mongodb.connect('mongodb://127.0.0.1:27017/',(err,client)=>{
         if(!err){
@@ -161,7 +202,7 @@ const deletedata = (query,collection,callback) => {
 }
 
 const setprivateip = (id) =>{
-    getdata('resources.instances',id,(data)=>{
+    getdata('resources.instances',{instanceid:id},(data)=>{
         let cmd = 'docker inspect --format \'{{.NetworkSettings.IPAddress}}\' '+data.instancename.toLowerCase();
         exec(cmd, (error, stdout, stderr) => {
             if (error) {
@@ -179,7 +220,7 @@ const setprivateip = (id) =>{
 }
 
 const setpublicip = (id) => {
-    getdata('resources.instances', id, (data) => {
+    getdata('resources.instances', { instanceid: id }, (data) => {
         let cmd = 'dig +short myip.opendns.com @resolver1.opendns.com';
         exec(cmd, (error, stdout, stderr) => {
             if (error) {
@@ -196,6 +237,26 @@ const setpublicip = (id) => {
     });
 }
 
+
+app.post('/updateData', (req, res) => {
+    updateData(req.body.query,req.body.data,req.query.collection,(status)=>{
+        if(status==1){
+            res.send('Data Updated');
+        }
+    });
+});
+
+const updateData = (query,data,collection,callback)=>{
+    mongodb.connect('mongodb://127.0.0.1:27017', (err, client) => {
+        if (!err) {
+            const db = client.db('cloud');
+            db.collection(collection).updateMany(query,{$set:data}).then((res)=>{
+                console.log(res.result);
+                callback(1);
+            });
+        }
+    });
+}
 
 const updateprivateip = (id, value) => {
     mongodb.connect('mongodb://127.0.0.1:27017', (err, client) => {
@@ -223,10 +284,10 @@ const updatepublicip = (id, value) => {
     });
 }
 
-const getdata = (collection,id,callback) =>{
+const getdata = (collection,query,callback) =>{
     let data = [];
     let singledata;
-    if(id==undefined){
+    if(query==undefined){
         mongodb.connect('mongodb://127.0.0.1:27017/', (err, client) => {
             if (!err) {
                 const db = client.db('cloud');
@@ -240,9 +301,9 @@ const getdata = (collection,id,callback) =>{
         mongodb.connect('mongodb://127.0.0.1:27017/', (err, client) => {
             if (!err) {
                 const db = client.db('cloud');
-                const cursor = db.collection(collection).find({"instanceid":id});
+                const cursor = db.collection(collection).find(query);
                 cursor.forEach((doc, err) => {
-                    singledata = doc;
+                    singledata=doc;
                 }).then(() => callback(singledata));
             }
         });
@@ -294,7 +355,7 @@ const updatevmstate = (id,statevalue) =>{
 
 
 const stopvm = (id,callback) => {
-    getdata('resources.instances',id,(data)=>{
+    getdata('resources.instances', { instanceid: id },(data)=>{
         let cmd1 = 'docker commit ' + data.instancename.toLowerCase() + ' '+data.instancename.toLowerCase()+':latest';
         let cmd2 = 'docker stop '+data.instancename.toLowerCase();
         if(data.state == 2){
@@ -368,16 +429,17 @@ app.post('/startvmmultiple',(req,res)=>{
         res.sendStatus(200);
     }else{
         req.body.instances.forEach((instance) => {
-            getdata('resources.instances', instance, (data) => {
+            getdata('resources.instances', {instanceid:instance}, (data) => {
                 if (data.state == 4) {
                     updatevmstate({ instanceid: data.instanceid }, 1);
                     
                     console.log(data.instanceid + " starting");
                     log('EVT_VM_STARTING', 'VM instance ' + data.instancename + ' is being started','resources.instances.logs');
                     startvm(data.instancename, data.port, (status) => {
-                        if (status = 1) {
+                        if (status == 1) {
                             updatevmstate({ instanceid: data.instanceid }, 2);
                             setprivateip(data.instanceid);
+                            setpublicip(data.instanceid);
                             log('EVT_VM_STARTED', 'VM instance ' + data.instancename + ' is Running', 'resources.instances.logs');
                             console.log(data.instanceid+" started");
                         }else{
@@ -395,7 +457,7 @@ app.post('/startvmmultiple',(req,res)=>{
 });
 
 const deletevm = (id,callback) =>{
-    getdata('resources.instances',id,(data)=>{
+    getdata('resources.instances', { instanceid: id },(data)=>{
         let cmd = 'docker rmi '+data.instancename.toLowerCase();
         stopvm(data.instanceid,(status)=>{
             if(status==1){
@@ -483,51 +545,75 @@ app.get('/getlogs',(req,res)=>{
     });
 });
 
+app.post('/getDataSingle', (req, res) => {
+    getdata(req.query.collection,req.body.query,(data)=>{
+        res.json(data);
+    });
+});
+
 app.get('/getData',(req,res)=>{
     getdata(req.query.collection,req.query.id,(data)=>{
         res.json(data);
     });
 });
-/*
-Build new vm:
-1. Base Image
-2. CPU and Memory
-2. Networking
-3. Attach Volumes
-*/ 
 
-/*
-Instance DB:
-collction => db.resource.instance
+app.post('/getresource',(req,res)=>{
+    getresource(req.query.collection, req.body.query, (data) => {
+        res.json(data);
+    });
+});
 
-object => {
-    user_resourceid, => provided by request
-    instanceid, => autogenerated
-    instancename, => provided by request
-    baseimage, => ''
-    vcpucount, => ''
-    memory, => ''
-    vpc, => ''
-    firewall, => ''
-    privateip, => generated by server
-    publicport, => autogenerated
-    state : [0:provisioning, 1:starting,2:running,3:stopping,4:stopped]
-    creationdate, => generated
-    lastlaunch => generated
+const getresource = (collection,query,callback)=>{
+    let data=[]
+    mongodb.connect('mongodb://127.0.0.1:27017/', (err, client) => {
+        if (!err) {
+            const db = client.db('cloud');
+            const cursor = db.collection(collection).find(query);
+            cursor.forEach((doc, err) => {
+                data.push(doc);
+            }).then(() => callback(data));
+        }
+    });
 }
 
-*/
+const getcontainerdata = async (repo) =>{
+    let tagdata = [];
+    try{
+        const tags = await Axios.get('http://54.204.246.33:5000/v2/' + repo + '/tags/list');
+        await Promise.all(
+            tags.data.tags.map(async tag => {
+                const detail = await Axios.get('http://54.204.246.33:5000/v2/' + repo + '/manifests/' + tag)
+                tagdata.push({
+                    tag: tag,
+                    created: new Date(JSON.parse(detail.data.history[0].v1Compatibility).created).toUTCString()
+                });
+            })
+        );
+    }catch(e){
+        console.log(e);
+    }
 
-/*
-Run VM:
-1. VM id
-2. Attach Specified Volumes
-3. Attach Specified Network Configurations
-*/
+    
+    return _.sortBy(tagdata,'created');
+}
 
-/*
-Stop VM:
-1. VM id
-*/
+
+app.get('/getcontainertags',async (req,res)=>{
+    var repo = await getcontainerdata(req.query.repo);
+    if(repo.length==0){
+        res.sendStatus(404);
+    }else{
+        res.send(repo);
+    }
+});
+
+
+app.get('/getcontainertagdata', (req, res) => {
+    exec('curl http://54.204.246.33:5000/v2/' + req.query.repo + '/manifests/'+req.query.tag, (error, stdout, stderr) => {
+        console.log(req.url)
+        console.log(stdout);
+        res.send(stdout);
+    }) 
+});
 
 app.listen(8888,()=>console.log('Server Running!'));
